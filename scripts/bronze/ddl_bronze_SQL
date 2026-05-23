@@ -1,0 +1,205 @@
+
+If object_id('bronze.crm_cust_info','u') is not null
+   Drop Table bronze.crm_cust_info;
+
+------Creating CRM table------
+	
+Create table bronze.crm_cust_info
+		(cst_id INT,
+		cst_key Nvarchar(50),
+		cst_firstname Nvarchar(50),
+		cst_lastname Nvarchar(50),
+		cst_marital_status Nvarchar(50),
+		cst_gndr Nvarchar(50),
+		cst_create_date date);
+
+		
+If object_id('bronze.crm_prd_info','u') is not null
+   Drop Table bronze.crm_prd_info;
+
+Create table bronze.crm_prd_info
+		(prd_id INT,
+		prd_key Nvarchar(50),
+		prd_nm Nvarchar(50),
+		prd_cost Nvarchar(50),
+		prd_line Nvarchar(50),
+		prd_start_dt Date,
+		prd_end_dt date);
+
+If object_id('bronze.crm_sales_details','u') is not null
+   Drop Table bronze.crm_sales_details;
+
+	Create table bronze.crm_sales_details
+		(sls_ord_num nvarchar(50),
+		sls_prd_key Nvarchar(50),
+		sls_cust_id int,
+		sls_order_dt int ,
+		sls_ship_dt int,
+		sls_due_dt int,
+		sls_sales int,
+		sls_quantity Int,
+		sls_price Int
+		);
+
+
+If object_id('bronze.erp_CUST_AZ12','u') is not null
+   Drop Table bronze.erp_CUST_AZ12;
+
+--------Creating ERM table---------
+
+	Create table bronze.erp_cust_az12
+		(cid Nvarchar(50),
+		bdate Date,
+		gen Nvarchar(50),
+		);
+
+If object_id('bronze.erp_LOC_A101','u') is not null
+   Drop Table bronze.erp_LOC_A101;
+
+	Create table bronze.erp_loc_a101
+		(cid Nvarchar(50),
+		cntry Nvarchar(50),
+		);
+
+If object_id('bronze.erp_PX_CAT_G1V2','u') is not null
+   Drop Table bronze.erp_PX_CAT_G1V2;
+   
+	Create table bronze.erp_px_cat_g1v2
+		(id Nvarchar(50),
+		cat Nvarchar(50),
+		subcat Nvarchar(50),
+		maintenance Nvarchar(50)
+		);
+
+
+-------Loading csv data file to table------
+
+Create or Alter procedure bronze.load_bronze AS
+Begin
+  Declare @starttime Datetime, @endtime datetime;
+
+Begin try
+
+Print'========================'
+Print'loading bronze layer'
+Print'========================'
+
+Print'========================'
+Print'loading CRM Table'
+Print'========================'
+
+Set @starttime=GETDATE()
+Print'>>Trucating :bronze.crm_cust_info'
+
+Truncate table bronze.crm_cust_info;
+
+
+Print'>>Inserting Data :bronze.crm_cust_info'
+
+Bulk insert bronze.crm_cust_info
+from'D:\Data with bara\sql-data-warehouse-project\datasets\source_crm\cust_info.csv'
+with(
+FIRSTROW=2,
+FIELDTERMINATOR=',',
+Tablock
+);
+Set @endtime=GETDATE();
+
+print'>>>Load duration:'+cast(datediff(second,@starttime,@endtime) AS nvarchar)+'second';
+
+-----Second table----
+
+Print'>>Trucating :bronze.crm_prd_info'
+
+Truncate table bronze.crm_prd_info;
+
+Print'>>Inserting Data :bronze.crm_prd_info'
+
+Bulk insert bronze.crm_prd_info
+from'D:\Data with bara\sql-data-warehouse-project\datasets\source_crm\prd_info.csv'
+with(
+	FIRSTROW=2,
+	FIELDTERMINATOR=',',
+	Tablock
+);
+
+
+-----Third table----
+
+Print'>>Trucating :bronze.crm_sales_details'
+
+Truncate table bronze.crm_sales_details;
+
+Print'>>Inserting Data :bronze.crm_sales_details'
+
+Bulk insert bronze.crm_sales_details
+from'D:\Data with bara\sql-data-warehouse-project\datasets\source_crm\sales_details.csv'
+with(
+	FIRSTROW=2,
+	FIELDTERMINATOR=',',
+	Tablock
+);
+
+
+
+-----First table from erp----
+	Print'========================'
+	Print'loading ERP Table'
+	Print'========================'
+
+
+Print'>>Trucating :bronze.erp_cust_az12'	
+
+Truncate table bronze.erp_cust_az12;
+
+Print'>>Inserting Data :bronze.erp_cust_az12'
+
+Bulk insert bronze.erp_cust_az12
+	from'D:\Data with bara\sql-data-warehouse-project\datasets\source_erp\cust_az12.csv'
+	with(
+		FIRSTROW=2,
+		FIELDTERMINATOR=',',
+		Tablock
+	);
+
+
+---second table form erp---
+
+Print'>>Trucating :bronze.erp_loc_a101'	
+Truncate table bronze.erp_loc_a101;
+
+
+Print'>>Inserting Data :bronze.erp_loc_a101'
+
+Bulk insert bronze.erp_loc_a101
+from'D:\Data with bara\sql-data-warehouse-project\datasets\source_erp\loc_a101.csv'
+with(
+	FIRSTROW=2,
+	FIELDTERMINATOR=',',
+	Tablock
+);
+
+
+
+---Third table form erp---
+Print'>>Trucating :bronze.erp_px_cat_g1v2'	
+
+Truncate table bronze.erp_px_cat_g1v2;
+
+Print'>>Inserting Data :erp_px_cat_g1v2'
+
+Bulk insert bronze.erp_px_cat_g1v2
+	from'D:\Data with bara\sql-data-warehouse-project\datasets\source_erp\px_cat_g1v2.csv'
+	with(
+		FIRSTROW=2,
+		FIELDTERMINATOR=',',
+		Tablock
+	);
+end try
+begin catch
+Print'======================================'
+print'error occur durig loading bronze layer'
+Print'======================================'
+end catch
+
+End
